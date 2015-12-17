@@ -53,7 +53,11 @@ worker.on('pause', function(appId) {
     }
 });
 
-worker.on('stop', process.exit.bind(process));
+worker.on('stop', function(err) {
+    if (argv.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
+});
+
+worker.on('terminate', process.exit.bind(process));
 
 worker.on('manager:start', function(appId) {
     if (argv.verbose >= 1) console.log('Manager `%s` is online', appId);

@@ -13,13 +13,22 @@ var argv = require('yargs')
     .alias('c', 'config')
     .describe('i', 'Worker identifier')
     .alias('i', 'id')
+    .default('id', 'worker-' + process.pid)
     .describe('m', 'MongoDB connection url for mubsub')
     .alias('m', 'mongo')
-    .default('id', 'worker-' + process.pid)
+    .describe('s', 'Run worker independently from manager')
+    .alias('s', 'standalone')
+    .boolean('s')
+    .default('standalone', false)
     .demand('mongo')
     .argv;
 
-var worker = new Worker({ id: argv.id, pid: process.pid, taskIds: argv._ });
+var worker = new Worker({
+    id: argv.id,
+    pid: process.pid,
+    standalone: argv.standalone,
+    taskIds: argv._
+});
 
 worker.on('connected', function(channel) {
     if (argv.verbose >= 1) console.log('Connected: %s [%s]', worker.id, worker.pid);

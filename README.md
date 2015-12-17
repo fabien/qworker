@@ -85,6 +85,15 @@ Here's an example:
 }
 ```
 
+## Pubsub Events
+
+- `worker:initialize`
+- `worker:start`
+- `worker:stop`
+- `worker:terminate`
+- `worker:ping`
+- `worker:notification`
+
 ## Implementation
 
 Qworker relies on [Agenda](https://github.com/rschmukler/agenda/) for handling 
@@ -118,3 +127,12 @@ handling the same tasks, allowing a more distributed workload.
 Also, because all communication is handled by a shared MongoDB instance, it is
 entirely possible to distribute the tasks accross multiple servers, as long
 as the executable tasks are within the (filesystem) reach of a worker.
+
+## Good to know
+
+- Tasks should generally only be scheduled through worker.scheduleTask,
+  unless the local agenda instance happens to know about this task.
+- Since you have access to both Agenda (`worker.agenda`) and Mubsub
+  (`worker.mubsub`) it's possible to communicate between workers, or
+  to trigger different pubsub events for other services.
+- Any service subscribing to the mubsub collection will be notified.  

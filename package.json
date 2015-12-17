@@ -20,6 +20,7 @@
   "dependencies": {
     "agenda": "^0.7.5",
     "async": "^1.5.0",
+    "fs-extra": "^0.26.2",
     "glob": "^6.0.1",
     "lodash": "^3.10.1",
     "mubsub": "^1.1.2",

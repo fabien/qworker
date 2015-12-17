@@ -11,12 +11,14 @@ npm install -g qworker
 Qworker is a command-line tool with the following options:
 
 ```
-Usage: qworker --id [identifier] --mongo [url] <task ...>
+Usage: bin/qworker --id [identifier] --mongo [url] <task ...>
 
 Options:
-  -c, --config  Configuration file
-  -i, --id      Worker identifier              [default: "worker-58987"]
-  -m, --mongo   MongoDB connection url for mubsub             [required]
+  -c, --config      Configuration file
+  -i, --id          Worker identifier                [default: "worker-<pid>"]
+  -m, --mongo       MongoDB connection url for mubsub               [required]
+  -s, --standalone  Run worker independently        [boolean] [default: false]
+  -p, --paths       Path(s) to load tasks from
 ```
 
 Note: you can also use environment variables with a `QWORKER_` prefix or an

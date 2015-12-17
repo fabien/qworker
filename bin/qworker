@@ -16,16 +16,19 @@ var argv = require('yargs')
     .default('id', 'worker-' + process.pid)
     .describe('m', 'MongoDB connection url for mubsub')
     .alias('m', 'mongo')
-    .describe('s', 'Run worker independently from manager')
+    .describe('s', 'Run worker independently')
     .alias('s', 'standalone')
     .boolean('s')
     .default('standalone', false)
+    .describe('p', 'Path(s) to load tasks from')
+    .alias('p', 'paths')
     .demand('mongo')
     .argv;
 
 var worker = new Worker({
     id: argv.id,
     pid: process.pid,
+    paths: argv.paths,
     standalone: argv.standalone,
     taskIds: argv._
 });

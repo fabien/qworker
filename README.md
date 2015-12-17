@@ -97,8 +97,8 @@ The flow is as follows:
 1. A worker starts and emits `worker:initialize` to the manager,
    and supplies the following info: worker id, process id and an array
    of task ids it is interested in.
-2. Once a manager replies, it will validate the task ids and subsequently
-   emits a reply to that specific worker (`<pid>/start`) with a configuration:
+2. The manager will validate the task ids and subsequently emits a reply to
+   that specific worker (`<pid>/start`) with a configuration:
    db, collection, tasks (full metadata of requested tasks).
    If validation of any of the requested tasks fails, the worker will be 
    terminated by the manager automatically.
@@ -106,9 +106,10 @@ The flow is as follows:
    Should the worker be online before the manager is, it will init the worker
    as in step 2 of the workflow. In other words: processes can be started and
    stopped independently. However, as long as the manager is offline, all
-   workers will remain paused.
+   workers will remain paused. The ping is checked at `interval * 2` to
+   confirm that the active workers are still available.
 4. In case a manager is restarted, a worker will re-initialize its tasks
-   and resume processing the queued jobs it is interested in.
+   and resume processing the queued jobs it registered.
 
 Worker id's should obviously be unique, and this is enforced at worker startup
 by communicating with the manager. There may, however, be multiple workers 
@@ -116,4 +117,4 @@ handling the same tasks, allowing a more distributed workload.
 
 Also, because all communication is handled by a shared MongoDB instance, it is
 entirely possible to distribute the tasks accross multiple servers, as long
-as the executable tasks are with the (filesystem) reach of a worker.
+as the executable tasks are within the (filesystem) reach of a worker.

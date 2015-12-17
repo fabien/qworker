@@ -60,13 +60,28 @@ worker.scheduleTask('now', 'email', { subject: '...', to: '...' });
 
 ### Task metadata
 
-- id: urlified unique identifier
+- id: urlified unique identifier (optional - defaults to urlified filename)
 - name: descriptive name
 - description: task description
 - jobAttributes (array): attibutes to use for notifications
 - job(Start|Progress|Success|Fail)Attributes: same as above
 
 The metadata for each task contains the absolute path to its executable code.
+
+By default jobAttributes is set to: 
+
+`['data', 'lastRunAt', 'nextRunAt', 'lastFinishedAt']`
+
+Here's an example:
+
+```
+{
+  "name": "Process",
+  "description": "Processes some data ...",
+  "jobAttributes": ["lastFinishedAt"],
+  "jobStartAttributes": ["lastFinishedAt", "data.to", "data.subject"]
+}
+```
 
 ## Implementation
 

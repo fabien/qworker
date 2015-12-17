@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+// qworker -v --id worker-bee --mongo mongodb://localhost:27017/task-management foo bar baz
+
+var Worker = require('../lib/worker');
+
+var argv = require('yargs')
+    .usage('Usage: $0 --id [identifier] --mongo [url] <task ...>')
+    .env('QWORKER').demand(1)
+    .count('verbose')
+    .alias('v', 'verbose')
+    .config('c', 'Configuration file')
+    .alias('c', 'config')
+    .describe('i', 'Worker identifier')
+    .alias('i', 'id')
+    .describe('m', 'MongoDB connection url for mubsub')
+    .alias('m', 'mongo')
+    .default('id', 'worker-' + process.pid)
+    .demand('mongo')
+    .argv;
+
+var worker = new Worker({ id: argv.id, pid: process.pid, taskIds: argv._ });
+
+worker.on('connected', function(channel) {
+    if (argv.verbose >= 1) console.log('Connected: %s [%s]', worker.id, worker.pid);
+});
+
+worker.on('disconnected', function(channel) {
+    if (argv.verbose >= 1) console.log('Disconnected: %s [%s]', worker.id, worker.pid);
+});
+
+worker.on('error', function(err) {
+    if (argv.verbose >= 0) console.log('Error: %s', err.message);
+});
+
+worker.on('pause', function(appId) {
+    if (argv.verbose >= 2 && appId) {
+        console.log('Paused worker (`%s` is offline)', appId);
+    } else if (argv.verbose >= 2) {
+        console.log('Paused worker');
+    }
+});
+
+worker.on('stop', process.exit.bind(process));
+
+worker.on('manager:start', function(appId) {
+    if (argv.verbose >= 1) console.log('Manager `%s` is online', appId);
+});
+
+worker.on('manager:stop', function(appId) {
+    if (argv.verbose >= 1) console.log('Manager `%s` is offline', appId);
+});
+
+worker.on('task:load', function(task) {
+    if (argv.verbose >= 2) console.log('Loaded task: %s - %s', task.id, task.name);
+});
+
+worker.on('job:start', function(job, task, data) {
+    if (argv.verbose >= 1) console.log('Starting Job: %s', job.attrs.name);
+});
+
+worker.on('job:progress', function(progress, job, task, data) {
+    if (argv.verbose >= 2) console.log('Progress for Job: %s', job.attrs.name, progress);
+});
+
+worker.on('job:success', function(job, task, data) {
+    if (argv.verbose >= 1) console.log('Completed Job: %s', job.attrs.name);
+});
+
+worker.on('job:fail', function(error, job, task, data) {
+    if (argv.verbose >= 0) console.log('Failed Job: %s', error, job.attrs.name);
+});
+
+worker.connect(argv.mongo, function(err) {
+    if (err) worker.stop(err);
+});

@@ -51,7 +51,7 @@ module.exports = function(worker, task) {
 };
 ```
 
-In addition to some helper methods (`log/info/warn/error/fail`) defined on
+In addition to some helper methods (`log/info/warn/error`) defined on
 all given entities (worker, task, job), there's also the job-specific:
 `job.progress` method, and the worker-related `worker.scheduleTask`, which
 allows sub-tasks to be scheduled by the manager:

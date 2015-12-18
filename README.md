@@ -97,10 +97,10 @@ When defining a hook, options can be passed, like this:
 initalizer('foo', { foo: 'bar' }, callback);
 ```
 
-A hook's callback function can be either synchronous (no arg), or asynchronous
-(callback arg).
+A hook's callback function can be either synchronous (`ctx` arg), or
+asynchronous (`ctx` and `callback` arguments).
 
-The callback's `this` context contains the following metadata:
+The callback's `ctx` argument contains the following metadata:
 
 - instance: a reference to the current instance (worker or task)
 - type: the current hook type (initalizer, finalizer, observer)
@@ -111,13 +111,13 @@ The callback's `this` context contains the following metadata:
 The following hooks are triggered when the worker starts:
 
 ```
-worker.initializer('db-connect', function(next) {
-    this.instance.log('Initializing: %s', this.name);
+worker.initializer('db-connect', function(ctx, next) {
+    ctx.instance.log('Initializing: %s', ctx.name);
     setTimeout(next, 100);
 });
 
-task.initializer('setup', function() {
-    this.instance.log('Initializing: %s - %s', task.id, this.name);
+task.initializer('setup', function(ctx) {
+    ctx.instance.log('Initializing: %s - %s', ctx.id, ctx.name);
 });
 
 ```
@@ -125,21 +125,21 @@ task.initializer('setup', function() {
 These hooks are triggered when the worker stops/terminates:
 
 ```
-worker.finalizer('db-disconnect', function(next) {
-    this.instance.log('Finalizing: %s', this.name);
+worker.finalizer('db-disconnect', function(ctx, next) {
+    ctx.instance.log('Finalizing: %s', ctx.name);
     setTimeout(next, 100);
 });
 
-task.finalizer('cleanup', function() {
-    this.instance.log('Finalizing: %s - %s', task.id, this.name);
+task.finalizer('cleanup', function(ctx) {
+    ctx.instance.log('Finalizing: %s - %s', task.id, ctx.name);
 });
 ```
 
 And finally the Task-specific `observer` hook:
 
 ```
-task.observer('execute', function(next) {
-    this.instance.log('Observing: %s - %s (%s)', this.instance.id, this.name, this.job.attrs._id);
+task.observer('execute', function(ctx, next) {
+    ctx.instance.log('Observing: %s - %s (%s)', ctx.instance.id, ctx.name, ctx.job.attrs._id);
     setTimeout(next, 100);
 });
 ```

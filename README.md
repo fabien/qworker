@@ -91,12 +91,21 @@ Several hooks are available to enable setup/teardown resources like database con
 hooks for each lifecycle event, as long as the names are unique for the given
 instance (a single worker, per-task given multiple tasks).
 
+When defining a hook, options can be passed, like this:
+
+```
+initalizer('foo', { foo: 'bar' }, callback);
+```
+
 A hook's callback function can be either synchronous (no arg), or asynchronous
-(callback arg). The function's `this` context contains the following metadata:
+(callback arg).
+
+The callback's `this` context contains the following metadata:
 
 - instance: a reference to the current instance (worker or task)
 - type: the current hook type (initalizer, finalizer, observer)
 - name: the given name of the hook
+- options: options passed during the hook definition call, if any
 - job: a Job instance, in case of a Task observer hook
 
 The following hooks are triggered when the worker starts:

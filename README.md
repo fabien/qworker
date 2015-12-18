@@ -91,7 +91,7 @@ Several hooks are available to enable setup/teardown resources like database con
 hooks for each lifecycle event, as long as the names are unique for the given
 instance (a single worker, per-task given multiple tasks).
 
-When defining a hook, options can be passed, like this:
+When defining a hook, options can be passed like this:
 
 ```
 initalizer('foo', { foo: 'bar' }, callback);

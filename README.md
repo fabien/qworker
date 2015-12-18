@@ -85,6 +85,56 @@ Here's an example:
 }
 ```
 
+## Lifecycle hooks
+
+Several hooks are available to enable setup/teardown resources like database connections, as well as observing a task on each run. You can define multiple
+hooks for each lifecycle event, as long as the names are unique for the given
+instance (a single worker, per-task given multiple tasks).
+
+A hook's callback function can be either synchronous (no arg), or asynchronous
+(callback arg). The function's `this` context contains the following metadata:
+
+- instance: a reference to the current instance (worker or task)
+- type: the current hook type (initalizer, finalizer, observer)
+- name: the given name of the hook
+- job: a Job instance, in case of a Task observer hook
+
+The following hooks are triggered when the worker starts:
+
+```
+worker.initializer('db-connect', function(next) {
+    this.instance.log('Initializing: %s', this.name);
+    setTimeout(next, 100);
+});
+
+task.initializer('setup', function() {
+    this.instance.log('Initializing: %s - %s', task.id, this.name);
+});
+
+```
+
+These hooks are triggered when the worker stops/terminates:
+
+```
+worker.finalizer('db-disconnect', function(next) {
+    this.instance.log('Finalizing: %s', this.name);
+    setTimeout(next, 100);
+});
+
+task.finalizer('cleanup', function() {
+    this.instance.log('Finalizing: %s - %s', task.id, this.name);
+});
+```
+
+And finally the Task-specific `observer` hook:
+
+```
+task.observer('execute', function(next) {
+    this.instance.log('Observing: %s - %s (%s)', this.instance.id, this.name, this.job.attrs._id);
+    setTimeout(next, 100);
+});
+```
+
 ## Pubsub Events
 
 - `worker:initialize`

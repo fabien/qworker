@@ -53,11 +53,27 @@ worker.on('pause', function(appId) {
     }
 });
 
-worker.on('stop', function(err) {
+worker.on('before:stop', function() {
+    if (argv.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
+});
+
+worker.on('stop', function() {
     if (argv.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
 });
 
 worker.on('terminate', process.exit.bind(process));
+
+worker.on('lifecycle:execute', function(event, ctx) {
+    if (argv.verbose >= 3) console.log('Worker `%s` lifecycle event: %s', ctx.instance.id, event);
+});
+
+worker.on('task:lifecycle:execute', function(task, event, ctx) {
+    if (argv.verbose >= 3 && ctx.job) {
+        console.log('Task `%s` lifecycle event: %s (job: %s)', ctx.instance.id, event, ctx.job.attrs._id);
+    } else if (argv.verbose >= 3) {
+        console.log('Task `%s` lifecycle event: %s', ctx.instance.id, event);
+    }
+});
 
 worker.on('manager:start', function(appId) {
     if (argv.verbose >= 1) console.log('Manager `%s` is online', appId);
@@ -68,23 +84,23 @@ worker.on('manager:stop', function(appId) {
 });
 
 worker.on('task:load', function(task) {
-    if (argv.verbose >= 2) console.log('Loaded task: %s - %s', task.id, task.name);
+    if (argv.verbose >= 3) console.log('Loaded task: %s - %s', task.id, task.name);
 });
 
 worker.on('job:start', function(job, task, data) {
-    if (argv.verbose >= 1) console.log('Starting Job: %s', job.attrs.name);
+    if (argv.verbose >= 1) console.log('Task - %s (%s): started', job.attrs.name, job.attrs._id);
 });
 
 worker.on('job:progress', function(progress, job, task, data) {
-    if (argv.verbose >= 2) console.log('Progress for Job: %s', job.attrs.name, progress);
+    if (argv.verbose >= 2) console.log('Task - %s (%s): progress - %s%', job.attrs.name, job.attrs._id, progress);
 });
 
 worker.on('job:success', function(job, task, data) {
-    if (argv.verbose >= 1) console.log('Completed Job: %s', job.attrs.name);
+    if (argv.verbose >= 1) console.log('Task - %s (%s): completed', job.attrs.name, job.attrs._id);
 });
 
 worker.on('job:fail', function(error, job, task, data) {
-    if (argv.verbose >= 0) console.log('Failed Job: %s', error, job.attrs.name);
+    if (argv.verbose >= 0) console.log('Task - %s (%s): failed - %s', job.attrs.name, job.attrs._id, error);
 });
 
 worker.connect(argv.mongo, function(err) {

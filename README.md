@@ -67,7 +67,9 @@ worker.scheduleTask('now', 'email', { subject: '...', to: '...' });
 - description: task description
 - jobAttributes (array): attibutes to use for notifications
 - job(Start|Progress|Success|Fail)Attributes: same as above
-- disabled: whether to skip this task during loading (boolean, default: false)
+- disabled: whether to skip this task during loading (default: false)
+- persistJobs: whether to keep completed (success/fail) jobs (default: false)
+- maxWorkers: how many workers can subscribe to this task (default: 0, unlimited)
 
 The metadata for each task contains the absolute path to its executable code.
 

@@ -1,108 +1,83 @@
 #!/usr/bin/env node
 
 // qworker -v --id worker-bee --mongo mongodb://localhost:27017/task-management foo bar baz
+// pm2 start -i 4 qworker -- --id worker-bee --mongo mongodb://localhost:27017/task-management foo bar baz
 
 var Worker = require('../lib/worker');
 
-var argv = require('yargs')
-    .usage('Usage: $0 --id [identifier] --mongo [url] <task ...>')
-    .env('QWORKER').demand(1)
-    .count('verbose')
-    .alias('v', 'verbose')
-    .config('c', 'Configuration file')
-    .alias('c', 'config')
-    .describe('i', 'Worker identifier')
-    .alias('i', 'id')
-    .default('id', 'worker-' + process.pid)
-    .describe('m', 'MongoDB connection url for mubsub')
-    .alias('m', 'mongo')
-    .describe('s', 'Run worker independently')
-    .alias('s', 'standalone')
-    .boolean('s')
-    .default('standalone', false)
-    .describe('p', 'Path(s) to load tasks from')
-    .alias('p', 'paths')
-    .demand('mongo')
-    .argv;
-
-var worker = new Worker({
-    id: argv.id,
-    pid: process.pid,
-    paths: argv.paths,
-    standalone: argv.standalone,
-    taskIds: argv._
-});
+var options = require('../lib/cli')();
+var worker = new Worker(options.worker);
 
 worker.on('connected', function(channel) {
-    if (argv.verbose >= 1) console.log('Connected: %s [%s]', worker.id, worker.pid);
+    if (options.verbose >= 1) console.log('Connected: %s [%s]', worker.id, worker.pid);
 });
 
 worker.on('disconnected', function(channel) {
-    if (argv.verbose >= 1) console.log('Disconnected: %s [%s]', worker.id, worker.pid);
+    if (options.verbose >= 1) console.log('Disconnected: %s [%s]', worker.id, worker.pid);
 });
 
 worker.on('error', function(err) {
-    if (argv.verbose >= 0) console.log('Error: %s', err.message);
+    if (options.verbose >= 0) console.log('Error: %s', err.message);
 });
 
 worker.on('pause', function(appId) {
-    if (argv.verbose >= 2 && appId) {
+    if (options.verbose >= 2 && appId) {
         console.log('Paused worker (`%s` is offline)', appId);
-    } else if (argv.verbose >= 2) {
+    } else if (options.verbose >= 2) {
         console.log('Paused worker');
     }
 });
 
 worker.on('before:stop', function() {
-    if (argv.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
+    if (options.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
 });
 
 worker.on('stop', function() {
-    if (argv.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
+    if (options.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
 });
 
-worker.on('terminate', process.exit.bind(process));
-
 worker.on('lifecycle:execute', function(event, ctx) {
-    if (argv.verbose >= 3) console.log('Worker `%s` lifecycle event: %s', ctx.instance.id, event);
+    if (options.verbose >= 3) console.log('Worker `%s` lifecycle event: %s', ctx.instance.id, event);
 });
 
 worker.on('task:lifecycle:execute', function(task, event, ctx) {
-    if (argv.verbose >= 3 && ctx.job) {
+    if (options.verbose >= 3 && ctx.job) {
         console.log('Task `%s` lifecycle event: %s (job: %s)', ctx.instance.id, event, ctx.job.attrs._id);
-    } else if (argv.verbose >= 3) {
+    } else if (options.verbose >= 3) {
         console.log('Task `%s` lifecycle event: %s', ctx.instance.id, event);
     }
 });
 
 worker.on('manager:start', function(appId) {
-    if (argv.verbose >= 1) console.log('Manager `%s` is online', appId);
+    if (options.verbose >= 1) console.log('Manager `%s` is online', appId);
 });
 
 worker.on('manager:stop', function(appId) {
-    if (argv.verbose >= 1) console.log('Manager `%s` is offline', appId);
+    if (options.verbose >= 1) console.log('Manager `%s` is offline', appId);
 });
 
 worker.on('task:load', function(task) {
-    if (argv.verbose >= 3) console.log('Loaded task: %s - %s', task.id, task.name);
+    if (options.verbose >= 3) console.log('Loaded task: %s - %s', task.id, task.name);
 });
 
 worker.on('job:start', function(job, task, data) {
-    if (argv.verbose >= 1) console.log('Task - %s (%s): started', job.attrs.name, job.attrs._id);
+    if (options.verbose >= 1) console.log('Task - %s (%s): started', job.attrs.name, job.attrs._id);
 });
 
 worker.on('job:progress', function(progress, job, task, data) {
-    if (argv.verbose >= 2) console.log('Task - %s (%s): progress - %s%', job.attrs.name, job.attrs._id, progress);
+    if (options.verbose >= 2) console.log('Task - %s (%s): progress - %s%', job.attrs.name, job.attrs._id, progress);
 });
 
 worker.on('job:success', function(job, task, data) {
-    if (argv.verbose >= 1) console.log('Task - %s (%s): completed', job.attrs.name, job.attrs._id);
+    if (options.verbose >= 1) console.log('Task - %s (%s): completed', job.attrs.name, job.attrs._id);
 });
 
 worker.on('job:fail', function(error, job, task, data) {
-    if (argv.verbose >= 0) console.log('Task - %s (%s): failed - %s', job.attrs.name, job.attrs._id, error);
+    if (options.verbose >= 0) console.log('Task - %s (%s): failed - %s', job.attrs.name, job.attrs._id, error);
 });
 
-worker.connect(argv.mongo, function(err) {
+worker.on('terminate', process.exit.bind(process));
+
+worker.connect(options.mongo, function(err) {
     if (err) worker.stop(err);
 });

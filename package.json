@@ -27,5 +27,8 @@
     "sprintf-js": "^1.0.3",
     "urlify": "^0.3.6",
     "yargs": "^3.31.0"
+  },
+  "bin": {
+	"qworker": "./bin/qworker"
   }
 }

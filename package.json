@@ -1,6 +1,6 @@
 {
   "name": "qworker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A PubSub enabled NodeJS worker for distributed task processing.",
   "main": "index.js",
   "private": true,

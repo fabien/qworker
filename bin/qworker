@@ -29,7 +29,7 @@ worker.on('pause', function(appId) {
 });
 
 worker.on('before:stop', function() {
-    if (options.verbose >= 0) console.log('Stopped: %s [%s]', worker.id, worker.pid);
+    if (options.verbose >= 3) console.log('Stopping: %s [%s]', worker.id, worker.pid);
 });
 
 worker.on('stop', function() {

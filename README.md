@@ -35,13 +35,13 @@ A typical implementation example:
 
 ```
 module.exports = function(worker, task) {
-    var Proccesor = require('some/work/stuff');
+    var Processor = require('some/work/stuff');
     
-    task.info('Defining task: %s (v.%s)', task.name, Proccesor.version);
+    task.info('Defining task: %s (v.%s)', task.name, Processor.version);
     
     worker.task(task.id, function(job, done) {
         job.info('Running task: %s', task.name);
-        var processor = new Proccesor(job);
+        var processor = new Processor(job);
         processor.on('progress', function(progress) {
             job.progress(progress);
         });
